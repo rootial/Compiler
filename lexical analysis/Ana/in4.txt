@@ -1,0 +1,12 @@
+int main(void)
+{
+	int a=43;
+	int b=32ul;
+	double c=1.54e-3;
+	double d=3.14e+4;
+	double e=.453e5;
+	float f=342.2354F;
+	char *g="dakdaj";
+	char h='k';
+	return 0;
+}

@@ -1,10 +1,11 @@
 #include<bits/stdc++.h>
+
 #define in freopen("solve_in.txt", "r", stdin);
 #define out freopen("out.txt", "w", stdout);
 #define END -1
 #define OKAY 1
 #define ERR 0
-#define bug(x) cout << "Line " << (x) << ": >>>>>>>>>>" << endl;
+#define bug(x) cerr << "Line " << (x) << ": >>>>>>>>>>" << endl;
 #define stop system("pause");
 using namespace std;
 const int KEYWORDS = 32;
@@ -15,24 +16,7 @@ const int NUM_STR = NUM_CHA + 1;
 const int NUM_INT = NUM_STR + 1;
 const int NUM_DBL = NUM_INT + 1;
 
-/*
-100
 
-+ ,  - ,  * ,  / ,  % , 5
-+= ,  -= ,  *= ,  /= ,  %=, 5
-
- ++ ,  -- , ->, 3
-   > , >=, >> , >>=, 4
- <, <=, << , <<=, 4
- = , == , ! , != , 4
-&& , & , &=,  3
-|| , |, |= ,  3
-^, ^=  2
-
-~ ,? ,  : , . , [ ,  ] 6
-,  ;  {  }  (  )  #
-
- */
 #define ERR_RMVCOM "Error occurs while removing comments!"
 #define ERR_ANACODE "Error occurs while analyzing code!"
 const int maxn = (int)1e5 + 10;
@@ -74,7 +58,7 @@ int isKeyWords(string word) {
     }
     return -1;
 }
-FILE *fout;
+
 
 bool removeComments(FILE *fin, string &saved) {
     //
@@ -104,12 +88,21 @@ bool removeComments(FILE *fin, string &saved) {
     }
     return true;
 }
-void writeWord(WordType typeRes) {
-    printf("(%s, %d)\n", typeRes.word.data(), typeRes.type);
+void Revc(string &str, stringstream &strIn) {
+    for (int i = (int)str.size()-1; i >= 0; i--) {
+        strIn.putback(str[i]);
+    }
+}
+int cnt = 0;
+void writeWord(WordType typeRes, FILE *fout) {
+    cnt++;
+    fprintf(fout, "(%s, %d)\n", typeRes.word.data(), typeRes.type);
 }
 //checked
-int readInt(string &res, stringstream &strIn) {
-    res = "";
+int readInt(string &fres, stringstream &strIn, bool can = true) {
+    if (can)
+        fres = "";
+    string res = "";
     char ch;
     while (~(ch = strIn.get()) &&
             (ch == ' ' || ch == '\n' || ch == '\t')) {
@@ -118,60 +111,133 @@ int readInt(string &res, stringstream &strIn) {
 
     if (strIn.eof()) return END;
     if (ch == '+' || ch == '-' || (ch >= '0' && ch <= '9')) {
-        res += ch;
+        res += ch, fres += ch;
     } else {
         strIn.putback(ch);
         return ERR;
     }
     while (~(ch = strIn.get()) &&
             (ch >= '0' && ch <= '9')) {
-        res += ch;
+        res += ch, fres += ch;
     }
     int st = strIn.eof();
-    if ((int)res.size() == 1 && !isdigit(res[0])) {
-        strIn.putback(res[0]);
-    }
+
     if (st) {
         if (isdigit(res[0]) || (int)res.size() > 1)
             return OKAY;
         else return ERR;
     }
     strIn.putback(ch);
+    if ((int)res.size() == 1 && !isdigit(res[0])) {
+        strIn.putback(res[0]);
+    }
     return isdigit(res[0]) || (int)res.size() > 1 ? OKAY : ERR;
 }
 int readFloat(string &res, stringstream &strIn) {
+//    cout << strIn.str() << endl;
     res = "";
     char ch;
-    while ((strIn >> ch) &&
+    while (~(ch = strIn.get()) &&
             (ch == ' ' || ch == '\n' || ch == '\t')) {
         ;
     }
     if (strIn.eof()) return END;
-    if (ch != '.' || ch != '+' || ch != '-' || !(ch > '9' && ch < '0')) {
+    if (ch != '.' && ch != '+' && ch != '-' && !(ch <= '9' && ch >= '0')) {
         return ERR;
     }
-    int dot = ch == '.';
-    res += ch;
-    if ((ch == '.' || ch == '+' || ch == '-') && strIn.eof()) {
-        strIn.putback(ch);
-        return ERR;
-    }
-    while ((strIn >> ch) &&
-            ((ch >= '0' && ch <= '9') || ch == '.')) {
+    if (ch == '.') {
         res += ch;
-        if (ch == '.') {
-            if (++dot > 1) {
+        if ((ch = strIn.get()) == -1 || !isdigit(ch)) {
+
+            if (!strIn.eof()) {
                 strIn.putback(ch);
-                break;
+            }
+            strIn.putback(res[0]);
+            return ERR;
+        } else {
+//        cout << res << endl;
+            strIn.putback(ch);
+//            cout << ch << endl;
+            readInt(res, strIn, false);
+//            cout << res << endl;
+            if ((ch = strIn.get()) == -1 || ch != 'e') {
+                if (!strIn.eof()) {
+                    strIn.putback(ch);
+                }
+                return OKAY;
+            } else {
+                res += ch;
+                if ((ch = strIn.get()) == -1 || !(ch == '+' || ch == '-' || isdigit(ch))) {
+                    return ERR;
+                } else {
+                    strIn.putback(ch);
+                    if (readInt(res, strIn, false) == ERR) return ERR;
+                }
             }
         }
+    } else if (isdigit(ch)) {
+        strIn.putback(ch);
+        readInt(res, strIn, false);
+
+        if ((ch = strIn.get()) == -1 || ch != '.') {
+
+            if (ch != 'e') {
+
+                if (ch != -1)
+                    strIn.putback(ch);
+                Revc(res, strIn);
+                return ERR;
+            } else {
+                res += ch;
+                if ((ch = strIn.get()) == -1 || !(ch == '+' || ch == '-' || isdigit(ch))) {
+                    return ERR;
+                } else {
+                    strIn.putback(ch);
+                    if (readInt(res, strIn, false) == ERR) return ERR;
+                }
+            }
+
+        } else {
+            res += ch;
+            if ((ch = strIn.get()) == -1) {
+                return OKAY;
+            } else if (isdigit(ch)) {
+                strIn.putback(ch);
+                readInt(res, strIn, false);
+                if ((ch = strIn.get()) == -1 || ch != 'e') {
+                    if (!strIn.eof())strIn.putback(ch);
+                    return OKAY;
+                } else {
+                    res += ch;
+                    if ((ch = strIn.get()) == -1 || !(ch == '+' || ch == '-' || isdigit(ch))) {
+                        return ERR;
+                    } else {
+                        strIn.putback(ch);
+                        if (readInt(res, strIn, false) == ERR) return ERR;
+                    }
+                }
+            } else if (ch == 'e') {
+                res += ch;
+                if ((ch = strIn.get()) == -1 || !(ch == '+' || ch == '-' || isdigit(ch))) {
+                    return ERR;
+                } else {
+                    strIn.putback(ch);
+                    if (readInt(res, strIn, false) == ERR) return ERR;
+                }
+            } else {
+                strIn.putback(ch);
+                return OKAY;
+            }
+        }
+    } else {
+
     }
     return OKAY;
 }
 int readCha(string &res, stringstream &strIn) {
     res = "";
     char ch;
-    while ((strIn >> ch) &&
+    while (~(ch = strIn.get()) &&
             (ch == ' ' || ch == '\n' || ch == '\t')) {
         ;
     }
@@ -179,17 +245,22 @@ int readCha(string &res, stringstream &strIn) {
     if (ch == '\'') {
         res += ch;
         strIn >> ch;
-        res += ch;
+        if (strIn.eof()) {
+            strIn.putback(ch);
+            return ERR;
+        }
         if (ch == '\\') {
             res += ch;
-            if (!(strIn >> ch)) return ERR;
+            if ((ch = strIn.get()) == -1) return ERR;
             res += ch;
-            if (!(strIn >> ch) || ch != '\'') {
+            if ((ch = strIn.get()) == -1 || ch != '\'') {
                 return ERR;
             }
             res += ch;
         } else {
-            if (!(strIn >> ch) || ch != '\'') {
+            res += ch;
+//            cout << ch << endl;
+            if ((ch = strIn.get()) == -1 || ch != '\'') {
                 return ERR;
             }
             res += ch;
@@ -203,18 +274,37 @@ int readCha(string &res, stringstream &strIn) {
 int readString(string &res, stringstream &strIn) {
     res = "";
     char ch;
-    while ((strIn >> ch) &&
+    while (~(ch = strIn.get()) &&
             (ch == ' ' || ch == '\n' || ch == '\t')) {
         ;
     }
     if (strIn.eof()) return END;
+
     if (ch == '"') {
         res += ch;
         char last = ch;
-        while ((strIn >> ch) && !(ch == '"' && last != '\\')) {
+        bool found = false;
+        while (~(ch = strIn.get())) {
+
+            res += ch;
+            if (ch == '"' && last != '\\') {
+                found = true;
+                break;
+            }
             last = ch;
         }
-        if (strIn.eof()) return ERR;
+        if (!found) {
+            if (strIn.eof()) return ERR;
+            else {
+//                    bug(1)
+                strIn.putback(ch);
+                for (int i = (int)res.size()-1; i >= 0; i--) {
+                    strIn.putback(res[i]);
+//                    cout << res[i];
+                }
+
+            }
+        }
     } else {
         strIn.putback(ch);
         return ERR;
@@ -223,17 +313,17 @@ int readString(string &res, stringstream &strIn) {
 }
 int main(int argc, char *argv[]) {
 
-    char sourcefile[50] = {"in.txt"};
-    char destfile[50] = {"out.txt"};
-    FILE *fin;
-//    if (argc>1)	{
-//        strcpy(sourcefile,argv[1]);
-//        strcpy(destfile,argv[2]);
-//    } else {
-//        printf("input sourcefile and destfile:");
-//        scanf("%s",sourcefile);
-//        scanf("%s",destfile);
-//    }
+    char sourcefile[50] = {"in7.txt"};
+    char destfile[50] = {"out7.txt"};
+    FILE *fin, *fout;
+    if (argc > 1)	{
+        strcpy(sourcefile,argv[1]);
+        strcpy(destfile,argv[2]);
+    } else {
+        printf("input sourcefile and destfile:");
+        scanf("%s",sourcefile);
+        scanf("%s",destfile);
+    }
     string code;
 
     if ((fin=fopen(sourcefile,"r")) == NULL) {
@@ -248,12 +338,12 @@ int main(int argc, char *argv[]) {
         puts(ERR_RMVCOM);
         exit(-1);
     }
-    cout << code << endl;
+//    cout << code << endl;
     stringstream strIn(code);
-    WordType tmp;
-    cout << readInt(tmp.word, strIn);
-    cout << tmp.word << endl;
-    return 0;
+//    WordType word;
+//    cout << readFloat(word.word, strIn) << ' ';
+//    cout << word.word << endl;
+//    return 0;
     while (!strIn.eof()) {
         char ch = strIn.get();
         while (ch  == ' ' || ch == '\t' || ch == '\n') {
@@ -279,36 +369,36 @@ int main(int argc, char *argv[]) {
             if (!strIn.eof()) {//not eof put back to strIn
                 strIn.putback(ch);
             }
-        } else if (isdigit(ch) ||
-                   ch == '+' || ch == '-') {//if starts with digit , +, or - read int or float
+        } else if (isdigit(ch)) {//if starts with digit , read int or float
 
             strIn.putback(ch);
-            if (readInt(wordRes.word, strIn) == OKAY) {
-                wordRes.type = NUM_INT;
-            } else if (readFloat(wordRes.word, strIn) == OKAY) {
+            if (readFloat(wordRes.word, strIn) == OKAY) {
                 wordRes.type = NUM_DBL;
-            } else {
-
+            } else if (readInt(wordRes.word, strIn) == OKAY) {
+                wordRes.type = NUM_INT;
             }
-        } else if(ch == '.') {
+        } else if(ch == '.') {//if starts with . , read float
             char nextCh;
-            strIn >> nextCh;
-
+            nextCh = strIn.get();
+//            cout << nextCh << endl;
+//            cout << wordRes.word << endl;
             if (strIn.eof() || !isdigit(nextCh)) {
-                if (!strIn.eof()) strIn.putback(nextCh);
+                if (!strIn.eof()) {
+                    strIn.putback(nextCh);
+                }
                 wordRes.word += ch;
-                wordRes.type = 137;
+                wordRes.type = 138;
             } else {
-                strIn.putback(ch);
                 strIn.putback(nextCh);
+                strIn.putback(ch);
                 if (readFloat(wordRes.word, strIn) == OKAY) {
-
+                    wordRes.type = NUM_DBL;
                 } else {
                     puts(ERR_ANACODE);
                     exit(-1);
                 }
             }
-        } else if (ch == '\'') {
+        } else if (ch == '\'') {//if starts with ' , read character
             strIn.putback(ch);
             if (readCha(wordRes.word, strIn) == OKAY) {
                 wordRes.type = NUM_CHA;
@@ -316,10 +406,10 @@ int main(int argc, char *argv[]) {
                 puts(ERR_ANACODE);
                 exit(-1);
             }
-        } else if (ch == '"') {//×Ö·û´®³£Á¿
+        } else if (ch == '"') {//if starts with " , read string
             strIn.putback(ch);
             if (readString(wordRes.word, strIn) == OKAY) {
-
+                wordRes.type = NUM_STR;
             } else {
                 puts(ERR_ANACODE);
                 exit(-1);
@@ -329,7 +419,7 @@ int main(int argc, char *argv[]) {
 
             switch (ch) {
             case '+':
-                strIn >> nextCh1;
+                nextCh1 = strIn.get();
                 if (strIn.eof()) {
                     wordRes.word += ch;
                     wordRes.type = 101;
@@ -349,7 +439,7 @@ int main(int argc, char *argv[]) {
                 }
                 break;
             case '-':
-                strIn >> nextCh1;
+                nextCh1 = strIn.get();
                 if (strIn.eof()) {
                     wordRes.word += ch;
                     wordRes.type = 102;
@@ -372,7 +462,7 @@ int main(int argc, char *argv[]) {
                 }
                 break;
             case '*':
-                strIn >> nextCh1;
+                nextCh1 = strIn.get();
                 if (strIn.eof()) {
                     wordRes.word += ch;
                     wordRes.type = 103;
@@ -389,7 +479,7 @@ int main(int argc, char *argv[]) {
                 break;
 
             case '/':
-                strIn >> nextCh1;
+                nextCh1 = strIn.get();
                 if (strIn.eof()) {
                     wordRes.word += ch;
                     wordRes.type = 104;
@@ -404,7 +494,7 @@ int main(int argc, char *argv[]) {
                     }
                 }
             case '%':
-                strIn >> nextCh1;
+                nextCh1 = strIn.get();
                 if (strIn.eof()) {
                     wordRes.word += ch;
                     wordRes.type = 105;
@@ -420,13 +510,13 @@ int main(int argc, char *argv[]) {
                 }
                 break;
             case '>':
-                strIn >> nextCh1;
+                nextCh1 = strIn.get();
                 wordRes.word += ch;
                 if (strIn.eof()) {
                     wordRes.type = 115;
                 } else {
                     if (nextCh1 == '>') {
-                        strIn >> nextCh2;
+                        nextCh2 = strIn.get();
                         wordRes.word += nextCh1;
                         if (strIn.eof()) {
                             wordRes.type = 117;
@@ -449,13 +539,13 @@ int main(int argc, char *argv[]) {
                 }
                 break;
             case '<':
-                strIn >> nextCh1;
+                nextCh1 = strIn.get();
                 wordRes.word += ch;
                 if (strIn.eof()) {
                     wordRes.type = 119;
                 } else {
                     if (nextCh1 == '<') {
-                        strIn >> nextCh2;
+                        nextCh2 = strIn.get();
                         wordRes.word += nextCh1;
                         if (strIn.eof()) {
                             wordRes.type = 121;
@@ -478,7 +568,7 @@ int main(int argc, char *argv[]) {
                 }
                 break;
             case '=':
-                strIn >> nextCh1;
+                nextCh1 = strIn.get();
                 if (strIn.eof()) {
                     wordRes.word += ch;
                     wordRes.type = 123;
@@ -494,7 +584,7 @@ int main(int argc, char *argv[]) {
                 }
                 break;
             case '!':
-                strIn >> nextCh1;
+                nextCh1 = strIn.get();
                 if (strIn.eof()) {
                     wordRes.word += ch;
                     wordRes.type = 125;
@@ -510,7 +600,7 @@ int main(int argc, char *argv[]) {
                 }
                 break;
             case '&':
-                strIn >> nextCh1;
+                nextCh1 = strIn.get();
                 if (strIn.eof()) {
                     wordRes.word += ch;
                     wordRes.type = 128;
@@ -529,7 +619,7 @@ int main(int argc, char *argv[]) {
                 }
                 break;
             case '|':
-                strIn >> nextCh1;
+                nextCh1 = strIn.get();
                 if (strIn.eof()) {
                     wordRes.word += ch;
                     wordRes.type = 131;
@@ -548,7 +638,7 @@ int main(int argc, char *argv[]) {
                 }
                 break;
             case '^':
-                strIn >> nextCh1;
+                nextCh1 = strIn.get();
                 if (strIn.eof()) {
                     wordRes.word += ch;
                     wordRes.type = 133;
@@ -585,38 +675,39 @@ int main(int argc, char *argv[]) {
                 break;
             case ',':
                 wordRes.word += ch;
-                wordRes.type = KEYWORDS;
+                wordRes.type = 141;
                 break;
             case ';':
                 wordRes.word += ch;
-                wordRes.type = KEYWORDS+1;
+                wordRes.type = 141+1;
                 break;
             case '{':
                 wordRes.word += ch;
-                wordRes.type = KEYWORDS+2;
+                wordRes.type = 141+2;
                 break;
             case '}':
                 wordRes.word += ch;
-                wordRes.type = KEYWORDS+3;
+                wordRes.type = 141+3;
                 break;
             case '(':
                 wordRes.word += ch;
-                wordRes.type = KEYWORDS+4;
+                wordRes.type = 141+4;
                 break;
             case ')':
                 wordRes.word += ch;
-                wordRes.type = KEYWORDS+5;
+                wordRes.type = 141+5;
                 break;
             case '#':
                 wordRes.word += ch;
-                wordRes.type = KEYWORDS+6;
+                wordRes.type = 141+6;
                 break;
             default:
                 puts(ERR_ANACODE);
                 exit(-1);
             }
         }
-        writeWord(wordRes);
+        writeWord(wordRes, fout);
     }
+//    bug(cnt)
     return 0;
 }

@@ -1,0 +1,9 @@
+
+int main(void)
+{
+	double a=1.4e-;
+	char x = ''x';
+	
+	printf("%d\n",a); `
+	return 0;
+}
